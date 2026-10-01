@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hello World！我的第一个AI开发的网站</title>
+  <style>
+    /* 页面样式：居中布局，简洁美观 */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+      text-align: center;
+      padding: 20px;
+    }
+    .card {
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 16px;
+      padding: 50px 60px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      max-width: 720px;
+    }
+    h1 {
+      font-size: 42px;
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+    .sub {
+      font-size: 20px;
+      margin-bottom: 36px;
+      opacity: 0.95;
+    }
+    .time-box {
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 10px;
+      padding: 20px 24px;
+    }
+    .time-label {
+      font-size: 14px;
+      opacity: 0.8;
+      margin-bottom: 8px;
+      letter-spacing: 1px;
+    }
+    #serverTime {
+      font-size: 26px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Hello World！</h1>
+    <p class="sub">我是【申】，我的第一个AI开发的网站</p>
+
+    <div class="time-box">
+      <div class="time-label" id="timeLabel">🕐 当前服务器时间</div>
+      <div id="serverTime">__SERVER_TIME__</div>
+    </div>
+  </div>
+
+  <script>
+    // 时间显示逻辑：优先取服务器时间；拿不到时用浏览器本地时间兜底，保证永不空白。
+    function formatTime(d) {
+      return d.toLocaleString('zh-CN', { hour12: false });
+    }
+    const timeEl = document.getElementById('serverTime');
+    const labelEl = document.getElementById('timeLabel');
+
+    function showLocalClock() {
+      // 兜底：直接显示本机时间（页面无论通过什么方式打开都能显示时间）
+      labelEl.textContent = '🕐 当前时间';
+      timeEl.textContent = formatTime(new Date());
+    }
+
+    // 若占位符未被服务器替换（说明没有 Node 后端），先用本地时间顶上
+    const injected = timeEl.textContent || '';
+    if (injected.includes('__SERVER_TIME__') || !injected.trim()) {
+      showLocalClock();
+    }
+
+    // 每秒刷新：优先请求 /api/time（服务器时间），失败则退回本地时间
+    async function tick() {
+      try {
+        const res = await fetch('/api/time');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        labelEl.textContent = '🕐 当前服务器时间';
+        timeEl.textContent = formatTime(new Date(data.local));
+      } catch (err) {
+        showLocalClock();
+      }
+    }
+    tick();
+    setInterval(tick, 1000);
+  </script>
+</body>
+</html>
